@@ -29,6 +29,10 @@ import androidx.lifecycle.LifecycleObserver
 import com.example.android.dessertpusher.databinding.ActivityMainBinding
 import timber.log.Timber
 
+const val KEY_REVENUE = "key_revenue"
+const val KEY_DESSERTS_SOLD = "key_desserts_sold"
+const val KEY_SECONDS_COUNT = "key_seconds_count"
+
 class MainActivity : AppCompatActivity(), LifecycleObserver {
 
     private var revenue = 0
@@ -76,8 +80,17 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
             onDessertClicked()
         }
 
-        // Create DessertTimer
-        dessertTimer = DessertTimer()
+        // Setup DessertTimer and pass in the lifecycle
+        dessertTimer = DessertTimer(this.lifecycle)
+
+        // Check if savedInstanceState is null. It is null by default.
+        // If savedInstanceState != null it means we are recreating the activity
+        if (savedInstanceState != null) {
+            // Get the saved revenue/dessertsSold/secondsCount value and pass it in as the revenue/dessertsSold/secondsCount variable
+            revenue = savedInstanceState.getInt(KEY_REVENUE, 0)
+            dessertsSold = savedInstanceState.getInt(KEY_DESSERTS_SOLD, 0)
+            dessertTimer.secondsCount = savedInstanceState.getInt(KEY_SECONDS_COUNT, 0)
+        }
 
         // Set the TextViews to the right values
         binding.revenue = revenue
@@ -94,7 +107,7 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
         super.onStart()
         // Log onStart being called
         Timber.i("onStart called")
-        dessertTimer.startTimer()
+//        dessertTimer.startTimer()
     }
 
     override fun onRestart() {
@@ -109,6 +122,11 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
         Timber.i("onResume called")
     }
 
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        Timber.i("onRestoreInstanceState called")
+    }
+
     override fun onPause() {
         super.onPause()
         // Log onPause being called
@@ -119,7 +137,16 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
         super.onStop()
         // Log onStop being called
         Timber.i("onStop called")
-        dessertTimer.stopTimer()
+//        dessertTimer.stopTimer()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        // Save revenue, dessertSold and dessertTimer.secondsCount data using Bundle
+        outState.putInt(KEY_REVENUE, revenue)
+        outState.putInt(KEY_DESSERTS_SOLD, dessertsSold)
+        outState.putInt(KEY_SECONDS_COUNT, dessertTimer.secondsCount)
+        Timber.i("onSaveInstanceState called")
+        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {
